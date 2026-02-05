@@ -1,137 +1,328 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Egal-Pass — Sophie & Niko</title>
-<style>
-  body { font-family: system-ui, sans-serif; text-align: center; background: #f4f6fb; padding: 28px; }
-  h1 { font-size: 2em; margin-bottom: 6px; }
-  .status { font-size: 1.35em; margin: 16px 0 18px; }
-  .buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-  button {
-    font-size: 1.1em; padding: 14px 18px; border-radius: 12px; border: none; cursor: pointer;
-  }
-  #switchBtn { background: #6c8cff; color: white; }
-  #resetBtn  { background: #ffffff; color: #111; border: 1px solid #d7dbe7; }
-  .counter { margin-top: 18px; font-size: 1.1em; }
-  .card {
-    max-width: 520px; margin: 18px auto 0; background: white; border-radius: 14px;
-    padding: 14px; box-shadow: 0 10px 24px rgba(20,30,60,0.08);
-    text-align: left;
-  }
-  .card h2 { font-size: 1.05em; margin: 0 0 10px; }
-  ol { margin: 0; padding-left: 22px; }
-  li { margin: 6px 0; }
-  .meta { font-size: 0.95em; color: #4b5563; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Egal-Pass — Sophie & Niko</title>
+  <style>
+    :root { color-scheme: light; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      text-align: center;
+      background: #f4f6fb;
+      padding: 28px;
+      margin: 0;
+    }
+    h1 { font-size: 2em; margin: 18px 0 6px; }
+    .meta { font-size: 0.95em; color: #4b5563; margin-bottom: 10px; }
+    .status { font-size: 1.35em; margin: 16px 0 18px; }
+
+    .wrap { max-width: 640px; margin: 0 auto; }
+    .buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 10px 0 8px;
+    }
+    button {
+      font-size: 1.05em;
+      padding: 14px 18px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+    }
+    #switchBtn { background: #6c8cff; color: #fff; }
+    #resetBtn  { background: #ffffff; color: #111; border: 1px solid #d7dbe7; }
+    #resetBtn:hover { background: #fafafa; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .tile {
+      background: #fff;
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 10px 24px rgba(20,30,60,0.08);
+    }
+    .tile h2 { margin: 0 0 8px; font-size: 1.05em; }
+    .count { font-size: 1.6em; font-weight: 700; margin: 4px 0 0; }
+
+    .card {
+      margin: 14px 0 0;
+      background: #fff;
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 10px 24px rgba(20,30,60,0.08);
+      text-align: left;
+    }
+    .card h2 { font-size: 1.05em; margin: 0 0 10px; }
+
+    ol { margin: 0; padding-left: 22px; }
+    li { margin: 6px 0; }
+
+    .small {
+      color: #6b7280;
+      font-size: 0.92em;
+      margin-top: 10px;
+      line-height: 1.35;
+      text-align: center;
+    }
+
+    .statusline {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #ffffff;
+      border: 1px solid #d7dbe7;
+      font-size: 0.92em;
+      color: #374151;
+    }
+    .dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: #f59e0b;
+    }
+    .dot.ok { background: #10b981; }
+    .dot.bad { background: #ef4444; }
+    code.inline { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 2px 6px; }
+  </style>
 </head>
 <body>
+  <div class="wrap">
+    <h1>🎟️ Egal-Pass</h1>
+    <div class="meta">Sophie ↔ Niko</div>
 
-<h1>🎟️ Egal-Pass</h1>
-<div class="meta">Sophie ↔ Niko</div>
+    <div class="status">
+      <div class="statusline">
+        <span id="statusText">Lade…</span>
+        <span class="pill">
+          <span id="syncDot" class="dot"></span>
+          <span id="syncText">Verbinde…</span>
+        </span>
+      </div>
+    </div>
 
-<div class="status" id="statusText"></div>
+    <div class="buttons">
+      <button id="switchBtn" onclick="switchEgal()">Egal weitergeben</button>
+      <button id="resetBtn" onclick="resetAll()">Reset</button>
+    </div>
 
-<div class="buttons">
-  <button id="switchBtn" onclick="switchEgal()">Egal weitergeben</button>
-  <button id="resetBtn" onclick="resetAll()">Reset</button>
-</div>
+    <div class="grid">
+      <div class="tile">
+        <h2>👤 Sophie</h2>
+        <div class="count" id="countSophie">0</div>
+      </div>
+      <div class="tile">
+        <h2>👤 Niko</h2>
+        <div class="count" id="countNiko">0</div>
+      </div>
+    </div>
 
-<div class="counter">
-  <p>👤 Sophie: <span id="countSophie">0</span></p>
-  <p>👤 Niko: <span id="countNiko">0</span></p>
-</div>
+    <div class="card">
+      <h2>🕒 Verlauf (letzte 20)</h2>
+      <ol id="historyList">
+        <li>Noch kein Eintrag.</li>
+      </ol>
+    </div>
 
-<div class="card">
-  <h2>🕒 Verlauf</h2>
-  <ol id="historyList"></ol>
-</div>
+    <div class="small">
+      Gemeinsamer Raum: <code class="inline" id="roomIdView"></code><br>
+      Tipp: Damit niemand anderes eure Seite “kapert”, ändere <code class="inline">ROOM_ID</code> unten in einen geheimen Code.
+    </div>
+  </div>
 
-<script>
-const STORAGE_KEY = "egal_pass_sophie_niko_v1";
+  <script type="module">
+    // --- Firebase Imports (CDN) ---
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
-let state = {
-  current: "Sophie",
-  countSophie: 0,
-  countNiko: 0,
-  history: [] // newest last
-};
+    // ============================================================
+    // 1) HIER Firebase Config EINFÜGEN (Firebase → Project settings → Web App)
+    // ============================================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyBg9OvH3OElPhvz9I_9COd1TOQgbdYi0WQ",
+      authDomain: "egaltool.firebaseapp.com",
+      projectId: "egaltool",
+      storageBucket: "egaltool.firebasestorage.app",
+      messagingSenderId: "51197180772",
+      appId: "1:51197180772:web:db9590df5e8fb359fe1871",
+      measurementId: "G-46T0RRWF7J"
+    };
 
-function nowStamp() {
-  const d = new Date();
-  const pad = (n) => String(n).padStart(2, "0");
-  return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
+    // ============================================================
+    // 2) Shared Room ID: auf beiden Handys gleich => gleicher Zustand
+    //    (Ändere das ruhig in etwas "geheimes")
+    // ============================================================
+    const ROOM_ID = "sophie-niko-egaltoll";
+    document.getElementById("roomIdView").textContent = ROOM_ID;
 
-function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
+    // --- UI elements ---
+    const statusText  = document.getElementById("statusText");
+    const countSophie = document.getElementById("countSophie");
+    const countNiko   = document.getElementById("countNiko");
+    const historyList = document.getElementById("historyList");
+    const syncDot     = document.getElementById("syncDot");
+    const syncText    = document.getElementById("syncText");
 
-function loadState() {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return;
-  try {
-    const parsed = JSON.parse(raw);
-    if (parsed && typeof parsed === "object") state = parsed;
-  } catch (_) {}
-}
+    function setSyncStatus(state) {
+      // state: "connecting" | "ok" | "bad"
+      syncDot.classList.remove("ok", "bad");
+      if (state === "ok") {
+        syncDot.classList.add("ok");
+        syncText.textContent = "Sync aktiv";
+      } else if (state === "bad") {
+        syncDot.classList.add("bad");
+        syncText.textContent = "Sync Fehler";
+      } else {
+        syncText.textContent = "Verbinde…";
+      }
+    }
 
-function updateDisplay() {
-  document.getElementById("statusText").innerText = `Gerade hat EGAL: ${state.current}`;
-  document.getElementById("countSophie").innerText = state.countSophie;
-  document.getElementById("countNiko").innerText = state.countNiko;
+    // --- State ---
+    let appState = {
+      current: "Sophie",
+      countSophie: 0,
+      countNiko: 0,
+      history: []
+    };
 
-  const list = document.getElementById("historyList");
-  list.innerHTML = "";
-  if (!state.history || state.history.length === 0) {
-    const li = document.createElement("li");
-    li.textContent = "Noch kein Eintrag.";
-    list.appendChild(li);
-    return;
+    function nowStamp() {
+      // de-DE timestamp
+      return new Date().toLocaleString("de-DE");
+    }
+
+    function render() {
+      statusText.textContent = `Gerade hat EGAL: ${appState.current}`;
+      countSophie.textContent = appState.countSophie;
+      countNiko.textContent = appState.countNiko;
+
+      historyList.innerHTML = "";
+      const items = (appState.history ?? []).slice(-20);
+
+      if (items.length === 0) {
+        const li = document.createElement("li");
+        li.textContent = "Noch kein Eintrag.";
+        historyList.appendChild(li);
+        return;
+      }
+
+      for (const entry of items) {
+        const li = document.createElement("li");
+        li.textContent = `${entry.time} — Egal ging an ${entry.to}`;
+        historyList.appendChild(li);
+      }
+    }
+
+    // --- Firebase init ---
+    setSyncStatus("connecting");
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const roomRef = doc(db, "egals", ROOM_ID);
+
+    async function writeState() {
+      // Merge allows adding fields later without overwriting doc structure
+      await setDoc(roomRef, { state: appState, updatedAt: serverTimestamp() }, { merge: true });
+    }
+
+    // Expose functions for onclick handlers
+    window.switchEgal = async function () {
+      try {
+        // Switch who currently has EGAL; increment the receiver count
+        appState.current = (appState.current === "Sophie") ? "Niko" : "Sophie";
+        if (appState.current === "Sophie") appState.countSophie++;
+        else appState.countNiko++;
+
+        appState.history = appState.history ?? [];
+        appState.history.push({ time: nowStamp(), to: appState.current });
+
+        await writeState();
+      } catch (e) {
+        console.error(e);
+        setSyncStatus("bad");
+        alert("Sync-Fehler beim Speichern. Prüfe Firebase Config / Rules.");
+      }
+    };
+
+    window.resetAll = async function () {
+      const ok = confirm("Wirklich alles zurücksetzen? (Zähler + Verlauf)");
+      if (!ok) return;
+
+      try {
+        appState = { current: "Sophie", countSophie: 0, countNiko: 0, history: [] };
+        await writeState();
+      } catch (e) {
+        console.error(e);
+        setSyncStatus("bad");
+        alert("Sync-Fehler beim Reset. Prüfe Firebase Config / Rules.");
+      }
+    };
+
+    async function init() {
+      try {
+        await signInAnonymously(auth);
+
+        // Create doc if missing
+        const snap = await getDoc(roomRef);
+        if (!snap.exists()) {
+          await writeState();
+        }
+
+        // Live updates from Firestore (both phones stay identical)
+        onSnapshot(roomRef, (docSnap) => {
+          const data = docSnap.data();
+          if (data?.state) {
+            appState = data.state;
+            render();
+            setSyncStatus("ok");
+          }
+        }, (err) => {
+          console.error(err);
+          setSyncStatus("bad");
+        });
+
+        render();
+        setSyncStatus("ok");
+      } catch (e) {
+        console.error(e);
+        setSyncStatus("bad");
+        alert("Firebase Verbindung fehlgeschlagen. Prüfe Config + Anonymous Auth.");
+      }
+    }
+
+    init();
+  </script>
+
+  <!--
+  FIRESTORE RULES (Firestore → Rules):
+  rules_version = '2';
+  service cloud.firestore {
+    match /databases/{database}/documents {
+      match /egals/{roomId} {
+        allow read, write: if request.auth != null;
+      }
+    }
   }
 
-  // zeige die letzten 20 Einträge
-  const last = state.history.slice(-20);
-  for (const entry of last) {
-    const li = document.createElement("li");
-    li.textContent = `${entry.time} — Egal ging an ${entry.to}`;
-    list.appendChild(li);
-  }
-}
-
-function switchEgal() {
-  // Wechsel + Zähler hoch bei der Person, die EGAL jetzt bekommt
-  if (state.current === "Sophie") {
-    state.current = "Niko";
-    state.countNiko++;
-  } else {
-    state.current = "Sophie";
-    state.countSophie++;
-  }
-
-  state.history.push({ time: nowStamp(), to: state.current });
-  saveState();
-  updateDisplay();
-}
-
-function resetAll() {
-  const ok = confirm("Wirklich alles zurücksetzen? (Zähler + Verlauf)");
-  if (!ok) return;
-
-  state = {
-    current: "Sophie",
-    countSophie: 0,
-    countNiko: 0,
-    history: []
-  };
-  saveState();
-  updateDisplay();
-}
-
-loadState();
-updateDisplay();
-</script>
-
+  SETUP CHECKLIST:
+  1) Firebase Console → Project settings → Add app (Web) → Copy firebaseConfig here
+  2) Build → Firestore Database → Create database
+  3) Build → Authentication → Sign-in method → Anonymous → Enable
+  4) Deploy to GitHub Pages
+  -->
 </body>
 </html>
