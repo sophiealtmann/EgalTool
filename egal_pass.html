@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Egal-Pass — Sophie & Niko</title>
+<style>
+  body { font-family: system-ui, sans-serif; text-align: center; background: #f4f6fb; padding: 28px; }
+  h1 { font-size: 2em; margin-bottom: 6px; }
+  .status { font-size: 1.35em; margin: 16px 0 18px; }
+  .buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  button {
+    font-size: 1.1em; padding: 14px 18px; border-radius: 12px; border: none; cursor: pointer;
+  }
+  #switchBtn { background: #6c8cff; color: white; }
+  #resetBtn  { background: #ffffff; color: #111; border: 1px solid #d7dbe7; }
+  .counter { margin-top: 18px; font-size: 1.1em; }
+  .card {
+    max-width: 520px; margin: 18px auto 0; background: white; border-radius: 14px;
+    padding: 14px; box-shadow: 0 10px 24px rgba(20,30,60,0.08);
+    text-align: left;
+  }
+  .card h2 { font-size: 1.05em; margin: 0 0 10px; }
+  ol { margin: 0; padding-left: 22px; }
+  li { margin: 6px 0; }
+  .meta { font-size: 0.95em; color: #4b5563; }
+</style>
+</head>
+<body>
+
+<h1>🎟️ Egal-Pass</h1>
+<div class="meta">Sophie ↔ Niko</div>
+
+<div class="status" id="statusText"></div>
+
+<div class="buttons">
+  <button id="switchBtn" onclick="switchEgal()">Egal weitergeben</button>
+  <button id="resetBtn" onclick="resetAll()">Reset</button>
+</div>
+
+<div class="counter">
+  <p>👤 Sophie: <span id="countSophie">0</span></p>
+  <p>👤 Niko: <span id="countNiko">0</span></p>
+</div>
+
+<div class="card">
+  <h2>🕒 Verlauf</h2>
+  <ol id="historyList"></ol>
+</div>
+
+<script>
+const STORAGE_KEY = "egal_pass_sophie_niko_v1";
+
+let state = {
+  current: "Sophie",
+  countSophie: 0,
+  countNiko: 0,
+  history: [] // newest last
+};
+
+function nowStamp() {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function loadState() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return;
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object") state = parsed;
+  } catch (_) {}
+}
+
+function updateDisplay() {
+  document.getElementById("statusText").innerText = `Gerade hat EGAL: ${state.current}`;
+  document.getElementById("countSophie").innerText = state.countSophie;
+  document.getElementById("countNiko").innerText = state.countNiko;
+
+  const list = document.getElementById("historyList");
+  list.innerHTML = "";
+  if (!state.history || state.history.length === 0) {
+    const li = document.createElement("li");
+    li.textContent = "Noch kein Eintrag.";
+    list.appendChild(li);
+    return;
+  }
+
+  // zeige die letzten 20 Einträge
+  const last = state.history.slice(-20);
+  for (const entry of last) {
+    const li = document.createElement("li");
+    li.textContent = `${entry.time} — Egal ging an ${entry.to}`;
+    list.appendChild(li);
+  }
+}
+
+function switchEgal() {
+  // Wechsel + Zähler hoch bei der Person, die EGAL jetzt bekommt
+  if (state.current === "Sophie") {
+    state.current = "Niko";
+    state.countNiko++;
+  } else {
+    state.current = "Sophie";
+    state.countSophie++;
+  }
+
+  state.history.push({ time: nowStamp(), to: state.current });
+  saveState();
+  updateDisplay();
+}
+
+function resetAll() {
+  const ok = confirm("Wirklich alles zurücksetzen? (Zähler + Verlauf)");
+  if (!ok) return;
+
+  state = {
+    current: "Sophie",
+    countSophie: 0,
+    countNiko: 0,
+    history: []
+  };
+  saveState();
+  updateDisplay();
+}
+
+loadState();
+updateDisplay();
+</script>
+
+</body>
+</html>
